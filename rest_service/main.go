@@ -10,6 +10,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
+// FIXME: в общие структурные файлы структуры вынести
 const (
     host = "127.0.0.1"
     port = 5432
@@ -18,7 +19,7 @@ const (
     dbname = "WorldPopulation"
 )
 
-
+// FIXME: в общие структурные файлы структуры вынести
 type Person struct {
 	Name  string `json:"name"`
 	Surname string `json:"surname"`
@@ -46,25 +47,19 @@ var albums = []album{
 func main() {
     router := gin.Default()
     router.GET("/get_persons", getPersons)
+
 	router.GET("/get_person/:id", getAlbumByID)
 	router.POST("/albums", postAlbums)
 
+	// FIXME: в константы env
     router.Run("localhost:8080")
 }
 
 
 
-func NewNullString(s string) sql.NullString {
-    if len(s) == 0 {
-        return sql.NullString{}
-    }
-    return sql.NullString{
-         String: s,
-         Valid: true,
-    }
-}
 
 func getPersons(c *gin.Context) {
+	// FIXME: в константы
 	blockSize := 10
 	page := 0
 
@@ -89,7 +84,6 @@ func getPersons(c *gin.Context) {
 			case "age":
 				var err error
 				argAge, err = strconv.Atoi(val[0])
-				fmt.Println("AGE: ", argAge)
 				if err != nil {
 					c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 					return
@@ -99,7 +93,11 @@ func getPersons(c *gin.Context) {
 			case "nationality":
 				argNationality = val[0]
 			case "page":
-				pageVal, _ := strconv.Atoi(string(val[0]))
+				pageVal, err := strconv.Atoi(string(val[0]))
+				if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+					return
+				}
 				page = 	blockSize * pageVal
 		}
     }
@@ -196,3 +194,4 @@ func postAlbums(c *gin.Context) {
     albums = append(albums, newAlbum)
     c.IndentedJSON(http.StatusCreated, newAlbum)
 }
+
