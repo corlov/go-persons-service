@@ -1,12 +1,32 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	_ "github.com/lib/pq"
 )
+
+const (
+    host = "127.0.0.1"
+    port = 5432
+    user = "postgres"
+    password = "postgres"
+    dbname = "WorldPopulation"
+)
+
+
+type Person struct {
+	Name  string `json:"name"`
+	Surname string `json:"surname"`
+	Patronymic string `json:"patronymic"`
+	Age uint8 `json:"age"`
+	Gender string `json:"gender"`
+	Nationality string `json:"nationality"`
+}
 
 // album represents data about a record album.
 type album struct {
@@ -64,21 +84,54 @@ func getPersons(c *gin.Context) {
 		}
     }
 
+	// rows2, err2 := db.Query("SELECT * FROM user WHERE id = ?", id)
+
 	sqlLimit := " limit " + strconv.Itoa(blockSize)
 	sqlOffset := " offset " + strconv.Itoa(page)
 
-	sqlQueryText := "select name, surname, age from \"Population\".Person where " + sqlWhere + sqlLimit + sqlOffset
+	
+	sqlQueryText := `
+		select  
+			name, 
+			surname, 
+			coalesce(patronymic, '') as patronymic,
+			coalesce(age, 0) as age, 
+			coalesce(gender_id, '') as gender,
+			coalesce(country_id, '') as nationality
+		from "Population".Person where ` + sqlWhere + sqlLimit + sqlOffset
 
 
 	fmt.Println(sqlQueryText)
 	
+	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
+    host, port, user, password, dbname)
+	db, err := sql.Open("postgres", connStr)
+    if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+    }
+    defer db.Close()
+    rows, err := db.Query(sqlQueryText)
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+    }
+    defer rows.Close()
 
-	// делаем запрос к БД
+	var persons []Person
+    for rows.Next() {
+		var p Person
+        err := rows.Scan(&p.Name, &p.Surname, &p.Patronymic, &p.Age, &p.Gender, &p.Nationality)
+        if err != nil {
+            c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+        }
+        fmt.Println("\n", p)
+		persons = append(persons, p)
+    }
+    err = rows.Err()
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+    }
 
-    //c.IndentedJSON(http.StatusOK, albums)
-	// c.JSON(http.StatusOK, albums)
-
-	c.IndentedJSON(http.StatusNotFound, gin.H{"message": sqlQueryText})
+	c.IndentedJSON(http.StatusOK,  persons)   
 }
 
 
