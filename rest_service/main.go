@@ -34,13 +34,99 @@ type Person struct {
 func main() {
     router := gin.Default()
     
-	router.GET("/get_persons", getPersons)
+	router.GET("/get_persons", getPersons)	
 	router.POST("/add_person", addPerson)
+	router.GET("/remove_person", removePerson)
+	router.POST("/update_person", updatePerson)
 
-	
 	// FIXME: в константы env
     router.Run("localhost:8080")
 }
+
+
+/*
+curl http://localhost:8080/remove_person?id=4
+*/
+func removePerson(c *gin.Context) {
+	argId := 0
+
+	paramPairs := c.Request.URL.Query()
+    for key, val := range paramPairs {
+		switch key {
+			case "id":	
+				var err error
+				argId, err = strconv.Atoi(val[0])
+				if err != nil {
+					c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+					return
+				}	
+		}
+    }
+
+	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	db, err := sql.Open("postgres", connStr)
+    if err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+    }
+    defer db.Close()
+    
+	// Avoiding SQL injection risk
+	sqlQueryText := `delete from "Population".Person where id = $1`
+	rows, err := db.Query(sqlQueryText, argId)
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+    }
+    defer rows.Close()
+	c.IndentedJSON(http.StatusOK, gin.H{"message": "OK"})   
+}
+
+
+
+/*
+curl http://localhost:8080/update_person \
+    --include \
+    --header "Content-Type: application/json" \
+    --request "POST" \
+    --data '{ "id": 2, "name": "Alex", "surname": "Ivanov", "age": 67, "gender": "male", "nationality": "ES"}'
+*/
+func updatePerson(c *gin.Context) {
+	var updPerson Person
+    // Call BindJSON to bind the received JSON to newPerson
+    if err := c.BindJSON(&updPerson); err != nil {
+		fmt.Println("BIND ERROR")
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+        return
+    }
+	fmt.Println(updPerson)
+
+	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
+    host, port, user, password, dbname)
+    db, err := sql.Open("postgres", connStr)
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+    }
+    defer db.Close()
+     	
+    sqlStatement := `
+		UPDATE "Population".Person SET 
+			name = $1,
+			surname = $2,
+			patronymic = $3, 
+			age = $4,
+			country_id = $5,
+			gender_id = $6
+		WHERE (id = $7)`
+    _, err = db.Exec(sqlStatement, updPerson.Name, updPerson.Surname, updPerson.Patronymic, updPerson.Age, updPerson.Nationality, updPerson.Gender, updPerson.Id)
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+    } 
+    c.IndentedJSON(http.StatusCreated, updPerson)
+}
+
 
 
 /*
@@ -54,6 +140,7 @@ func addPerson(c *gin.Context) {
 	var newPerson Person
     // Call BindJSON to bind the received JSON to newPerson
     if err := c.BindJSON(&newPerson); err != nil {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
         return
     }
 
@@ -74,6 +161,8 @@ func addPerson(c *gin.Context) {
     } 
     c.IndentedJSON(http.StatusCreated, newPerson)
 }
+
+
 
 func getPersons(c *gin.Context) {
 	// FIXME: в константы
