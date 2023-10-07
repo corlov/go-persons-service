@@ -1,3 +1,15 @@
+Осталось:
+	6. Выставить GraphQL методы аналогичные п.5	
+	8. Покрыть код логами
+	9. Покрыть бизнес-логику unit-тестами
+		https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
+	10. Вынести все конфигурационные данные в .env
+	---- 
+	11. файл с миграцией БД
+	12. разнести все по модулям
+	12. code review, DRY, KISS, SOLID
+
+----------------------------------------------------
 CREATE TABLE "Population".Person (
 	id bigserial NOT NULL, 
 	name varchar(100) NOT NULL, 
