@@ -21,6 +21,7 @@ const (
 
 // FIXME: в общие структурные файлы структуры вынести
 type Person struct {
+	Id  uint64 `json:"id"`
 	Name  string `json:"name"`
 	Surname string `json:"surname"`
 	Patronymic string `json:"patronymic"`
@@ -29,34 +30,50 @@ type Person struct {
 	Nationality string `json:"nationality"`
 }
 
-// album represents data about a record album.
-type album struct {
-    ID     string  `json:"id"`
-    Title  string  `json:"title"`
-    Artist string  `json:"artist"`
-    Price  float64 `json:"price"`
-}
-
-// albums slice to seed record album data.
-var albums = []album{
-    {ID: "1", Title: "Blue Train", Artist: "John Coltrane", Price: 56.99},
-    {ID: "2", Title: "Jeru", Artist: "Gerry Mulligan", Price: 17.99},
-    {ID: "3", Title: "Sarah Vaughan and Clifford Brown", Artist: "Sarah Vaughan", Price: 39.99},
-}
 
 func main() {
     router := gin.Default()
-    router.GET("/get_persons", getPersons)
+    
+	router.GET("/get_persons", getPersons)
+	router.POST("/add_person", addPerson)
 
-	router.GET("/get_person/:id", getAlbumByID)
-	router.POST("/albums", postAlbums)
-
+	
 	// FIXME: в константы env
     router.Run("localhost:8080")
 }
 
 
+/*
+curl http://localhost:8080/add_person \
+    --include \
+    --header "Content-Type: application/json" \
+    --request "POST" \
+    --data '{ "name": "Alex", "surname": "Ivanov", "age": 31, "gender": "male", "nationality": "RU" }'
+*/
+func addPerson(c *gin.Context) {
+	var newPerson Person
+    // Call BindJSON to bind the received JSON to newPerson
+    if err := c.BindJSON(&newPerson); err != nil {
+        return
+    }
 
+	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
+    host, port, user, password, dbname)
+    db, err := sql.Open("postgres", connStr)
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+    }
+    defer db.Close()
+     	
+    sqlStatement := `INSERT INTO "Population".Person (name, surname, patronymic, age, country_id, gender_id) VALUES ($1, $2, $3, $4, $5, $6)`
+    _, err = db.Exec(sqlStatement, newPerson.Name, newPerson.Surname, newPerson.Patronymic, newPerson.Age, newPerson.Nationality, newPerson.Gender)
+    if err != nil {
+        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+    } 
+    c.IndentedJSON(http.StatusCreated, newPerson)
+}
 
 func getPersons(c *gin.Context) {
 	// FIXME: в константы
@@ -115,6 +132,7 @@ func getPersons(c *gin.Context) {
 	
 	sqlQueryText := `
 		select  
+			id,
 			name, 
 			surname, 
 			coalesce(patronymic, '') as patronymic,
@@ -147,7 +165,7 @@ func getPersons(c *gin.Context) {
 	var persons []Person
     for rows.Next() {
 		var p Person
-        err := rows.Scan(&p.Name, &p.Surname, &p.Patronymic, &p.Age, &p.Gender, &p.Nationality)
+        err := rows.Scan(&p.Id, &p.Name, &p.Surname, &p.Patronymic, &p.Age, &p.Gender, &p.Nationality)
         if err != nil {
             c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
@@ -162,36 +180,3 @@ func getPersons(c *gin.Context) {
 
 	c.IndentedJSON(http.StatusOK,  persons)   
 }
-
-
-// getAlbumByID locates the album whose ID value matches the id
-// parameter sent by the client, then returns that album as a response.
-func getAlbumByID(c *gin.Context) {
-    id := c.Param("id")
-
-    // Loop over the list of albums, looking for
-    // an album whose ID value matches the parameter.
-    for _, a := range albums {
-        if a.ID == id {
-            c.IndentedJSON(http.StatusOK, a)
-            return
-        }
-    }
-    c.IndentedJSON(http.StatusNotFound, gin.H{"message": "album not found"})
-}
-
-// postAlbums adds an album from JSON received in the request body.
-func postAlbums(c *gin.Context) {
-    var newAlbum album
-
-    // Call BindJSON to bind the received JSON to
-    // newAlbum.
-    if err := c.BindJSON(&newAlbum); err != nil {
-        return
-    }
-
-    // Add the new album to the slice.
-    albums = append(albums, newAlbum)
-    c.IndentedJSON(http.StatusCreated, newAlbum)
-}
-

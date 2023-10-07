@@ -172,7 +172,7 @@ func insertDb(p *Person) {
      
 	
     sqlStatement := `INSERT INTO "Population".Person (name, surname, patronymic, age, country_id, gender_id) VALUES ($1, $2, $3, $4, $5, $6)`
-    _, err = db.Exec(sqlStatement, p.Name, p.Surname, p.Patronymic, p.Age, p.Nationality, p.Nationality)
+    _, err = db.Exec(sqlStatement, p.Name, p.Surname, p.Patronymic, p.Age, p.Nationality, p.Gender)
     if err != nil {
         panic(err)
     } else {
