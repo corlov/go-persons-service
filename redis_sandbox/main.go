@@ -111,7 +111,7 @@ func loadDb2Redis() {
 	fmt.Println("Loaded!")
 
 	// reading
-	
+
 	// val, err := client.Get(ctx, "68").Result()
 	// if err != nil {
 	// 	fmt.Println("Not found")
@@ -126,5 +126,4 @@ func loadDb2Redis() {
 	// 	return
 	// }
 	// fmt.Println(p)
-
 }

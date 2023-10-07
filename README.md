@@ -1,3 +1,48 @@
+Для того чтобы сгенерировать схему нужно выполнить команды: 
+
+export GOPATH=/home/kostya/go/src 
+
+go mod init
+
+go get github.com/99designs/gqlgen
+
+go run github.com/99designs/gqlgen init
+
+go mod tidy
+
+go run github.com/99designs/gqlgen generate
+
+
+
+ 2062  go get github.com/99designs/gqlgen/codegen/config@v0.17.39
+ 2063  go get github.com/99designs/gqlgen/internal/imports@v0.17.39
+ 2064  go get github.com/99designs/gqlgen@v0.17.39
+ 2065  go run github.com/99designs/gqlgen generate
+
+
+# query {  
+#   get_persons(id: "1") {
+#     name
+#   }
+# }
+
+
+mutation {
+  delete_person(personId: "7"){
+    iserror
+    description
+  }
+}
+
+
+# mutation{
+#   update_book(input: {book_id:2, authors: [{name: "new name by update"}]}){
+#     iserror
+#     description
+#   }
+# }
+
+
 Осталось:
 	6. Выставить GraphQL методы аналогичные п.5	
 	8. Покрыть код логами
