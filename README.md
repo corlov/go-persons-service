@@ -1,16 +1,4 @@
-Осталось:
-
-1. Вынести все конфигурационные данные в .env
-
-2. разнести все по модулям
-
-3. code review, DRY, KISS, SOLID
-
--------------------------------------------------------------------------------------------------------
-
-  
-
-**GraphQL**
+**GraphQL service API**
 
   
 
@@ -20,41 +8,36 @@ https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-a
 
 Exec commands bellow to generate your own GQL handlers by GQL schema:
 
-  
+
 
     export GOPATH=/home/kostya/go/src
     
-      
     
     go mod init
     
-      
     
     go get github.com/99designs/gqlgen
     
-      
-    
+
     go run github.com/99designs/gqlgen init
     
-      
-    
+
     go mod tidy
-    
-      
+   
     
     go run github.com/99designs/gqlgen generate
 
   
 
-При генерации могут полезть ошибки, нужно установить пакеты:
+Sometimes some errors happened, you need to try to install manually:
 
-    2062 go get github.com/99designs/gqlgen/codegen/config@v0.17.39
+     go get github.com/99designs/gqlgen/codegen/config@v0.17.39
     
-    2063 go get github.com/99designs/gqlgen/internal/imports@v0.17.39
+     go get github.com/99designs/gqlgen/internal/imports@v0.17.39
     
-    2064 go get github.com/99designs/gqlgen@v0.17.39
+     go get github.com/99designs/gqlgen@v0.17.39
     
-    2065 go run github.com/99designs/gqlgen generate
+     go run github.com/99designs/gqlgen generate
 
   
 
@@ -66,13 +49,12 @@ Exec commands bellow to generate your own GQL handlers by GQL schema:
 
   
 
-На версиях Кафки старше чем 2.2:
+Kafka version > 2.2:
 
     /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic TutorialTopic
     
       
-
-поэтому создаем топик так:
+create topic:
 
     /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-topics.sh --create --topic TutorialTopic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1
 
@@ -80,13 +62,13 @@ Exec commands bellow to generate your own GQL handlers by GQL schema:
 
   
 
-сообщение отправить:
+send the message to topic:
 
     cat msg.json | /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic FIO > /dev/null
 
   
 
-сообщение принять:
+read a message from topic:
 
     /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic TutorialTopic --from-beginning
 
@@ -95,7 +77,7 @@ Exec commands bellow to generate your own GQL handlers by GQL schema:
 
 ---------------------------------------------------------------------------------
 
-Статьи по разным аспектам, которые использовались для написания проекта:
+Manuals and articles thats helped and have been notable useful for me:
 
 	https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-20-04
 
