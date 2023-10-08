@@ -1,22 +1,15 @@
 Осталось:
 
-8. Покрыть код логами
+1. Покрыть бизнес-логику unit-тестами
+	https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
 
-9. Покрыть бизнес-логику unit-тестами
-
-https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
-
-10. Вынести все конфигурационные данные в .env
+2. Вынести все конфигурационные данные в .env
 
 ----
 
-  
+3. разнести все по модулям
 
-12. разнести все по модулям
-
-12. code review, DRY, KISS, SOLID
-
-  
+4. code review, DRY, KISS, SOLID
 
 -------------------------------------------------------------------------------------------------------
 
@@ -30,7 +23,7 @@ https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-a
 
   
 
-Для того чтобы сгенерировать схему нужно выполнить команды:
+Exec commands bellow to generate your own GQL handlers by GQL schema:
 
   
 
@@ -107,9 +100,7 @@ https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-a
 
 ---------------------------------------------------------------------------------
 
-Сатьи, которые использоваляиь для написания проекта:
-
-  
+Статьи по разным аспектам, которые использовались для написания проекта:
 
 https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-20-04
 
