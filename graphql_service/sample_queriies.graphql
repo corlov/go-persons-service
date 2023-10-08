@@ -1,0 +1,33 @@
+# http://127.0.0.1:8081/
+
+query {  
+  get_persons(id: "9") {
+    name
+    surname
+    age
+    gender
+    nationality
+  }
+}
+
+mutation{
+  add_person(input: { name: "Ivan", surname: "Smirnoff", age: 45, gender: "male", nationality: "RU" }){
+    iserror
+    description
+  }
+}
+
+mutation{
+  update_person(input: { id: "9", name: "Ivan", surname: "Smirnoff", patronymic: "Petrovich", age: 55, gender: "male", nationality: "BY" }){
+    iserror
+    description
+  }
+}
+
+mutation {
+  delete_person(personId: "7"){
+    iserror
+    description
+  }
+}
+

@@ -1,3 +1,7 @@
+GraphQL
+
+https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-approach-in-golang-a8da71d7e5b7
+
 Для того чтобы сгенерировать схему нужно выполнить команды: 
 
 export GOPATH=/home/kostya/go/src 
@@ -12,39 +16,15 @@ go mod tidy
 
 go run github.com/99designs/gqlgen generate
 
+При генерации могут полезть ошибки, нужно установить пакеты:
+	2062  go get github.com/99designs/gqlgen/codegen/config@v0.17.39
+	2063  go get github.com/99designs/gqlgen/internal/imports@v0.17.39
+	2064  go get github.com/99designs/gqlgen@v0.17.39
+	2065  go run github.com/99designs/gqlgen generate
 
-
- 2062  go get github.com/99designs/gqlgen/codegen/config@v0.17.39
- 2063  go get github.com/99designs/gqlgen/internal/imports@v0.17.39
- 2064  go get github.com/99designs/gqlgen@v0.17.39
- 2065  go run github.com/99designs/gqlgen generate
-
-
-# query {  
-#   get_persons(id: "1") {
-#     name
-#   }
-# }
-
-
-mutation {
-  delete_person(personId: "7"){
-    iserror
-    description
-  }
-}
-
-
-# mutation{
-#   update_book(input: {book_id:2, authors: [{name: "new name by update"}]}){
-#     iserror
-#     description
-#   }
-# }
-
+-------------------------------------------------------------------------------------------------------
 
 Осталось:
-	6. Выставить GraphQL методы аналогичные п.5	
 	8. Покрыть код логами
 	9. Покрыть бизнес-логику unit-тестами
 		https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
@@ -54,7 +34,7 @@ mutation {
 	12. разнести все по модулям
 	12. code review, DRY, KISS, SOLID
 
-----------------------------------------------------
+-------------------------------------------------------------------------------------------------------
 CREATE TABLE "Population".Person (
 	id bigserial NOT NULL, 
 	name varchar(100) NOT NULL, 
@@ -72,68 +52,27 @@ CREATE TABLE "Population".Person (
 );
 COMMENT ON TABLE Person.keyword IS 'граждане';
 ---------------------------------------------------------------------------------
+Kafka
 
-
-
-cat ./debug_json_messages/msg.json | /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic FIO > /dev/nul
-
-
-/home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic FIO_FAILED --from-beginning
-
--------------------------------------------------------------
-Сатьи, которые использоваляиь для написания проекта:
-
-https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-20-04
-https://www.sohamkamani.com/golang/working-with-kafka/
-------------------
-
-sudo nano /etc/systemd/system/zookeeper.service
-
-sudo nano /etc/systemd/system/kafka.service
-
-
-
-
-sudo systemctl enable zookeeper
-
-sudo systemctl start zookeeper
-
-sudo systemctl status zookeeper
-
-
-sudo systemctl start kafka
-
-sudo systemctl status kafka
-
-sudo systemctl enable kafka
-
-
-
-sudo systemctl daemon-reload
-
-
-Это на версиях Кафки старше чем 2.2 не будет работать (устаревшая опция):
+На версиях Кафки старше чем 2.2:
 /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-topics.sh --create --zookeeper localhost:2181 --replication-factor 1 --partitions 1 --topic TutorialTopic
 
 поэтому создаем топик так:
 /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-topics.sh --create --topic TutorialTopic --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1                     
 (https://stackoverflow.com/questions/69297020/exception-in-thread-main-joptsimple-unrecognizedoptionexception-zookeeper-is)
 
-
-
-
+сообщение отправить:
 echo "Hello, World" | /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-console-producer.sh --broker-list localhost:9092 --topic TutorialTopic > /dev/null
 
-
+сообщение принять:
 /home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-console-consumer.sh --bootstrap-server localhost:9092 --topic TutorialTopic --from-beginning
 
-=========================
-1) установить Kafka cluster на локальной машине
 
-2) создать очередь FIO
+---------------------------------------------------------------------------------
+Сатьи, которые использоваляиь для написания проекта:
 
-/home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-topics.sh --create --topic FIO --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1                     
+https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-20-04
+https://www.sohamkamani.com/golang/working-with-kafka/
+https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
+https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-approach-in-golang-a8da71d7e5b7
 
-3) Проверка входящих сообщений, публикация в очередь с ошибками тех что не прошли верификацию
-
-/home/kostya/kafka/kafka_2.12-3.6.0/bin/kafka-topics.sh --create --topic FIO_FAILED --bootstrap-server localhost:9092 --replication-factor 1 --partitions 1  

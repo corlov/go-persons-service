@@ -18,8 +18,6 @@ type Person {
 	nationality: String
 }
 
-
-
 input UpdatePersonInput{
   id: ID!
   name: String!
@@ -31,9 +29,9 @@ input UpdatePersonInput{
 }
 
 input PersonInput{
-    name: String!
-    surname: String!
-    patronymic: String
+  name: String!
+  surname: String!
+  patronymic: String
 	age: Int
 	gender: String
 	nationality: String
