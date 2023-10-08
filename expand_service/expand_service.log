@@ -1,8 +1,0 @@
-2023/10/08 14:07:16 main.go:76: started
-2023/10/08 14:07:16 reader.go:296: entering loop for consumer group, my-group
-2023/10/08 14:07:16 consumergroup.go:786: Unable to establish connection to consumer group coordinator for group my-group: failed to dial: failed to open connection to localhost:9092: dial tcp 127.0.0.1:9092: connect: connection refused
-2023/10/08 14:07:16 reader.go:314: failed to dial: failed to open connection to localhost:9092: dial tcp 127.0.0.1:9092: connect: connection refused
-2023/10/08 14:07:21 consumergroup.go:786: Unable to establish connection to consumer group coordinator for group my-group: failed to dial: failed to open connection to localhost:9092: dial tcp 127.0.0.1:9092: connect: connection refused
-2023/10/08 14:07:21 reader.go:314: failed to dial: failed to open connection to localhost:9092: dial tcp 127.0.0.1:9092: connect: connection refused
-2023/10/08 14:07:26 consumergroup.go:786: Unable to establish connection to consumer group coordinator for group my-group: failed to dial: failed to open connection to localhost:9092: dial tcp 127.0.0.1:9092: connect: connection refused
-2023/10/08 14:07:26 reader.go:314: failed to dial: failed to open connection to localhost:9092: dial tcp 127.0.0.1:9092: connect: connection refused

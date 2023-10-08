@@ -57,7 +57,7 @@ func main() {
 	router.POST("/update_person", updatePerson)
 
 	// FIXME: в константы env
-    router.Run("localhost:8080")
+    router.Run("localhost:8085")
 }
 
 
@@ -118,12 +118,21 @@ func updatePerson(c *gin.Context) {
     }
 	Log.Println(updPerson)
 
+	errorMsg := update(updPerson)
+	if errorMsg != "" {
+		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": errorMsg})
+	}
+
+	c.IndentedJSON(http.StatusCreated, updPerson)
+}
+
+
+func update(p Person) string {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
     host, port, user, password, dbname)
     db, err := sql.Open("postgres", connStr)
     if err != nil {
-        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
+		return err.Error()
     }
     defer db.Close()
      	
@@ -136,15 +145,22 @@ func updatePerson(c *gin.Context) {
 			country_id = $5,
 			gender_id = $6
 		WHERE (id = $7)`
-    _, err = db.Exec(sqlStatement, updPerson.Name, updPerson.Surname, updPerson.Patronymic, updPerson.Age, updPerson.Nationality, updPerson.Gender, updPerson.Id)
+    res, err := db.Exec(sqlStatement, p.Name, p.Surname, p.Patronymic, p.Age, p.Nationality, p.Gender, p.Id)
     if err != nil {
-        c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
+        return err.Error()
     } 
-    c.IndentedJSON(http.StatusCreated, updPerson)
+
+	n, err := res.RowsAffected()
+	if err != nil {
+		return err.Error()
+	}
+
+	if n < 1 {
+		return "not found"
+	}
+	
+	return ""
 }
-
-
 
 /*
 curl http://localhost:8080/add_person \
