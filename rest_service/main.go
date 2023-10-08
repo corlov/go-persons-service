@@ -5,7 +5,9 @@ import (
 	"database/sql"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 
 	"github.com/gin-gonic/gin"
@@ -13,6 +15,9 @@ import (
 	"github.com/redis/go-redis"
 )
 
+var (
+	Log      *log.Logger
+)
 // FIXME: в общие структурные файлы структуры вынести
 const (
     host = "127.0.0.1"
@@ -35,6 +40,13 @@ type Person struct {
 
 
 func main() {
+	file, err := os.Create("./rest_service.log")
+	if err != nil {
+		panic(err)
+	}
+	Log = log.New(file, "", log.LstdFlags | log.Lshortfile)
+	Log.Println("started")
+
 	loadDb2Redis()
 	
     router := gin.Default()
@@ -100,11 +112,11 @@ func updatePerson(c *gin.Context) {
 	var updPerson Person
     // Call BindJSON to bind the received JSON to newPerson
     if err := c.BindJSON(&updPerson); err != nil {
-		fmt.Println("BIND ERROR")
+		Log.Println("BIND ERROR")
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
         return
     }
-	fmt.Println(updPerson)
+	Log.Println(updPerson)
 
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
     host, port, user, password, dbname)
@@ -246,20 +258,20 @@ func getPersons(c *gin.Context) {
 
 		val, err := client.Get(ctx, strconv.Itoa(int(argId))).Result()
 		if err != nil {
-			fmt.Println("Not found, read from Db")
+			Log.Println("Not found, read from Db")
 		} else {
 			var p Person
 			err = json.Unmarshal([]byte(val), &p)
 			if err != nil {
-				fmt.Println(err.Error())
+				Log.Println(err.Error())
 				return
 			}
-			fmt.Println(p)
+			Log.Println(p)
 
 			var persons []Person
 			persons = append(persons, p)
 			c.IndentedJSON(http.StatusOK,  persons) 
-			fmt.Println("found into Redis")
+			Log.Println("found into Redis")
 			return
 		}
 	}
@@ -381,9 +393,9 @@ func loadDb2Redis() {
     if err != nil {
 		return
     }
-	fmt.Println("Loaded!")
+	Log.Println("Loaded!")
 
-	// reading
+	// reading from Redis
 
 	// val, err := client.Get(ctx, "68").Result()
 	// if err != nil {

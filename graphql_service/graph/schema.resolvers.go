@@ -31,13 +31,11 @@ type Person struct {
 	Nationality string `json:"nationality"`
 }
 
+
 // AddPerson is the resolver for the add_person field.
 func (r *mutationResolver) AddPerson(ctx context.Context, input model.PersonInput) (*model.PostStatus, error) {	
-	description := ""
-	fmt.Println(input.Name)
-	fmt.Println(input)
+	description := ""	
 	newPerson := model.Person{Name: input.Name, Surname: input.Surname, Patronymic: input.Patronymic, Age: input.Age, Gender: input.Gender, Nationality: input.Nationality}
-	fmt.Println(newPerson)
    
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
     host, port, user, password, dbname)
@@ -61,10 +59,7 @@ func (r *mutationResolver) AddPerson(ctx context.Context, input model.PersonInpu
 // UpdatePerson is the resolver for the update_person field.
 func (r *mutationResolver) UpdatePerson(ctx context.Context, input *model.UpdatePersonInput) (*model.PostStatus, error) {
 	description := ""
-	fmt.Println(input.Name)
-	fmt.Println(input)
 	newPerson := model.UpdatePersonInput{ID: input.ID, Name: input.Name, Surname: input.Surname, Patronymic: input.Patronymic, Age: input.Age, Gender: input.Gender, Nationality: input.Nationality}
-	fmt.Println(newPerson)
    
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
     host, port, user, password, dbname)
@@ -95,9 +90,7 @@ func (r *mutationResolver) UpdatePerson(ctx context.Context, input *model.Update
 
 // DeletePerson is the resolver for the delete_person field.
 func (r *mutationResolver) DeletePerson(ctx context.Context, personID string) (*model.PostStatus, error) {
-	fmt.Printf("Deleting (ID : %s) \n", personID)
 	description := ""
-
 	
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
 	db, err := sql.Open("postgres", connStr)

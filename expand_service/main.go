@@ -63,22 +63,27 @@ type Nationality struct {
 	Country []Country
 }
 
-
+var (
+	Log      *log.Logger
+)
 
 func main() {
+	file, err := os.Create("./expand_service.log")
+	if err != nil {
+		panic(err)
+	}
+	Log = log.New(file, "", log.LstdFlags | log.Lshortfile)
+	Log.Println("started")
+
 	ctx := context.Background()	
 	consume(ctx)
-
-	// p := Person{Name: "Dmitry", Surname: "Petrov", Patronymic: "Olegovich"}
-	// expandData(&p)
-
 }
 
 
 func consume(ctx context.Context) {
 	// create a new logger that outputs to stdout
 	// and has the `kafka reader` prefix
-	l := log.New(os.Stdout, "kafka reader: ", 0)
+	
 	// initialize a new reader with the brokers and topic
 	// the groupID identifies the consumer and prevents
 	// it from receiving duplicate messages
@@ -86,29 +91,29 @@ func consume(ctx context.Context) {
 		Brokers: []string{brokerAddress},
 		Topic:   fioTopicName,
 		GroupID: "my-group",
-		// assign the logger to the reader
-		Logger: l,
+		Logger: Log,
 	})
 	for {
 		// the `ReadMessage` method blocks until we receive the next event
 		msg, err := r.ReadMessage(ctx)
 		if err != nil {
-			panic("could not read message " + err.Error())
+			Log.Println("could not read message " + err.Error())
+			continue
 		}
-		fmt.Println("received: ", string(msg.Value))
+		Log.Println("received: ", string(msg.Value))
 
 		
 		var newPerson Person
 		err = json.Unmarshal([]byte(string(msg.Value)), &newPerson)
 		if err != nil {
-			fmt.Println("json format error:", err)
+			Log.Println("json format error:", err)
 			go produceToErrorQueue(string(msg.Value))
 		} else {
-			fmt.Println("name: '" + newPerson.Name + "'\n", "surname: '" + newPerson.Surname + "'\n", "Patronymic: '" + newPerson.Patronymic + "'\n",)
+			Log.Println("name: '" + newPerson.Name + "'\n", "surname: '" + newPerson.Surname + "'\n", "Patronymic: '" + newPerson.Patronymic + "'\n",)
 
 			if (newPerson.Name == "") || (newPerson.Surname == "") {  
 				go produceToErrorQueue(string(msg.Value))			
-				fmt.Println("Empty fields error!")
+				Log.Println("Empty fields error!")
 			} else {
 				go expandData(&newPerson)
 			}
@@ -123,19 +128,22 @@ func expandData(p *Person) {
 	jsonStr := httpRes("https://api.agify.io", p.Name)
 	err := json.Unmarshal([]byte(jsonStr), &age)
 	if err != nil {
-		fmt.Println(err.Error())
+		Log.Println(err.Error())
 		return
 	}
-	// FIXME: проверку типов пройти, если null, то тогда выдать сообщение о некорректности имени и т.д.
+	// FIXME: может вернуть в случае экзотического имени пустое значение
+	// поэтому проверку типов пройти, если null, то тогда выдать сообщение о некорректности имени и т.д.
 	p.Age = age.Age
 
 	var gender Gender
 	jsonStr = httpRes("https://api.genderize.io", p.Name)
 	err = json.Unmarshal([]byte(jsonStr), &gender)
 	if err != nil {
-		fmt.Println(err.Error())
+		Log.Println(err.Error())
 		return
 	}
+	// FIXME: может вернуть в случае экзотического имени пустое значение
+	// поэтому проверку типов пройти, если null, то тогда выдать сообщение о некорректности имени и т.д.
 	p.Gender = gender.Gender
 
 
@@ -143,10 +151,10 @@ func expandData(p *Person) {
 	jsonStr = httpRes("https://api.nationalize.io", p.Name)
 	err = json.Unmarshal([]byte(jsonStr), &nationality)
 	if err != nil {
-		fmt.Println(err.Error())
+		Log.Println(err.Error())
 		return
 	}
-	p.Nationality = "unknown"
+	p.Nationality = "??"
 	max := 0.0
 	for _, nation := range nationality.Country { 
 		if nation.Probability > max {
@@ -155,8 +163,7 @@ func expandData(p *Person) {
 		}
 	}
 	
-	fmt.Println(p)
-
+	Log.Println(p)
 	insertDb(p)
 }
 
@@ -176,7 +183,7 @@ func insertDb(p *Person) {
     if err != nil {
         panic(err)
     } else {
-        fmt.Println("\nRow inserted successfully!")
+        Log.Println("\nRow inserted successfully!")
     }
 }
 
@@ -188,27 +195,27 @@ func httpRes(baseURL string, personName string) string {
 	u.RawQuery = params.Encode()
 	
 	urlStr := fmt.Sprintf("%v", u) 
-	fmt.Println("query to ", urlStr)
+	Log.Println("query to ", urlStr)
 
 	resp, err := http.Get(urlStr)
 	defer resp.Body.Close()
-	fmt.Println(resp.Status)
+	Log.Println(resp.Status)
 	if err != nil {
-		fmt.Println(err.Error())
+		Log.Println(err.Error())
 		return ""
 	}
 	
 	if resp.Status != "200 OK" {
-		fmt.Println(resp.Status)
+		Log.Println(resp.Status)
 		return ""
 	}
 
 	body, err := ioutil.ReadAll(resp.Body) 
 	if err != nil {
-		fmt.Println(err.Error())
+		Log.Println(err.Error())
 		return ""
 	}
-	fmt.Println(string(body), err) 
+	Log.Println(string(body), err) 
 
 	return string(body)
 }
@@ -218,13 +225,12 @@ func httpRes(baseURL string, personName string) string {
 func produceToErrorQueue(message string) {
 	ctx := context.Background()
 
-	l := log.New(os.Stdout, "kafka writer: ", 0)
 	// intialize the writer with the broker addresses, and the topic
 	w := kafka.NewWriter(kafka.WriterConfig{
 		Brokers: []string{brokerAddress},
 		Topic:   errrorTopicName,
 		// assign the logger to the writer
-		Logger: l,
+		Logger: Log,
 	})
 
 	// each kafka message has a key and value. The key is used
@@ -237,51 +243,3 @@ func produceToErrorQueue(message string) {
 
 	w.Close()	
 }
-
-
-//
-// https://stackoverflow.com/questions/49585021/how-to-check-if-a-json-matches-a-struct-struct-fields
-//
-// func (p *Person) UnmarshalJSON(data []byte) error {
-//     var m map[string]interface{}
-//     err := json.Unmarshal(data, &m)
-//     if err != nil {
-//         return err
-//     }
-
-//     v := reflect.ValueOf(p).Elem()
-//     t := v.Type()
-
-//     var missing []string
-//     for i := 0; i < t.NumField(); i++ {
-//         field := t.Field(i)
-//         val, ok := m[field.Name]
-//         delete(m, field.Name)
-//         if !ok {
-//             missing = append(missing, field.Name)
-//             continue
-//         }
-
-//         switch field.Type.Kind() {
-//         // TODO: if the field is an integer you need to transform the val from float
-//         default:
-//             v.Field(i).Set(reflect.ValueOf(val))
-//         }
-//     }
-
-//     if len(missing) > 0 {
-//         return errors.New("missing fields: " + strings.Join(missing, ", "))
-//     }
-
-//     if len(m) > 0 {
-//         extra := make([]string, 0, len(m))
-//         for field := range m {
-//             extra = append(extra, field)
-//         }
-//         // TODO: consider sorting the output to get deterministic errors:
-//         // sort.Strings(extra)
-//         return errors.New("unknown fields: " + strings.Join(extra, ", "))
-//     }
-
-//     return nil
-// }
