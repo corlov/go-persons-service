@@ -11,6 +11,7 @@ import (
 	"strconv"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"github.com/redis/go-redis"
 )
@@ -56,8 +57,14 @@ func main() {
 	router.GET("/remove_person", removePerson)
 	router.POST("/update_person", updatePerson)
 
-	// FIXME: в константы env
-    router.Run("localhost:8085")
+	
+	err = godotenv.Load("../local.env")
+	if err != nil {
+		log.Fatalf("Some error occured. Err: %s", err)
+	}
+
+	restPort := os.Getenv("REST_PORT")
+    router.Run("localhost:" + restPort)
 }
 
 

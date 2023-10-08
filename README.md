@@ -1,15 +1,10 @@
 Осталось:
 
-1. Покрыть бизнес-логику unit-тестами
-	https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
+1. Вынести все конфигурационные данные в .env
 
-2. Вынести все конфигурационные данные в .env
+2. разнести все по модулям
 
-----
-
-3. разнести все по модулям
-
-4. code review, DRY, KISS, SOLID
+3. code review, DRY, KISS, SOLID
 
 -------------------------------------------------------------------------------------------------------
 
@@ -102,13 +97,18 @@ Exec commands bellow to generate your own GQL handlers by GQL schema:
 
 Статьи по разным аспектам, которые использовались для написания проекта:
 
-https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-20-04
+	https://www.digitalocean.com/community/tutorials/how-to-install-apache-kafka-on-ubuntu-20-04
 
-https://www.sohamkamani.com/golang/working-with-kafka/
+	https://www.sohamkamani.com/golang/working-with-kafka/
 
-https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
+	https://www.digitalocean.com/community/tutorials/how-to-write-unit-tests-in-go-using-go-test-and-the-testing-package
 
-https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-approach-in-golang-a8da71d7e5b7
+	https://betterprogramming.pub/building-a-graphql-server-using-the-schema-first-approach-in-golang-a8da71d7e5b7
 
-https://hevodata.com/learn/postgresql-partitions/#t8
+	https://hevodata.com/learn/postgresql-partitions/#t8
+
+	https://golangbyexample.com/load-env-fiie-golang/
+
+	https://go.dev/doc/tutorial/web-service-gin
+
 
