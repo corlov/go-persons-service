@@ -194,25 +194,19 @@ https://go.dev/doc/code
 
 4) в корневом каталоге модуля д.ю. файл go.work, в нем перечислаяются пути к директориям с пакетами, добавить туда путь к пакету
 
-    go 1.21.1
-    
-      
-    
-    use (
-    
-    .
-    
-    ./rest
-    
-    ./data_enrichment
-    
-    ./graphql
-    
-    ./types
-    
-    ./db_utils
-    
-    )
+        ```go
+        
+        go 1.21.1
+        
+        use (        
+            .            
+            ./rest            
+            ./data_enrichment            
+            ./graphql            
+            ./types            
+            ./db_utils        
+        )
+        ```
 
   
   
