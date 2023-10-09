@@ -16,23 +16,14 @@ Exec commands bellow to generate your own GraphQL handlers by GraphQL schema:
   
   
   
-
-    export GOPATH=/home/kostya/go/src
-    
-    go mod init
-    
-    go get github.com/99designs/gqlgen
-    
-      
-    
+```bash
+    export GOPATH=/home/kostya/go/src    
+    go mod init    
+    go get github.com/99designs/gqlgen    
     go run github.com/99designs/gqlgen init
-    
-      
-    
     go mod tidy
-    
     go run github.com/99designs/gqlgen generate
-
+```
   
 
   
@@ -147,36 +138,29 @@ Manuals and articles thats helped and have been notable useful for me:
 
 https://go.dev/doc/code
 
-В go существуют понятия:
-    пакета - модуль - репозиторий
-
-    т.е. модуль состоит из пакетов, репозиторий из модулей.
+В go существуют понятия: пакет -> модуль -> репозиторий, т.е. модуль состоит из пакетов, репозиторий из модулей.
 
 Для того чтобы добавить пакет pkgA в модуль нужно:
 
 1) создать каталог pkgA внутри модуля с имененм пакета pkgA
-
-    mkdir pkgA
-    
+```bash
+    mkdir pkgA    
     cd pkgA
+```
 
 2) создать внутри каталога pkgA какой то файл some.go в которм в заголовке указать package pkgA и те функции которые будут
-
-    touch some.go
-    
+```bash
+    touch some.go    
     vim some.go
+```
 
-
-
+```go
     package pkgA
-    
-      
-    
-    func MyFun(a int) int {
-    
-    return a + 5
-    
+
+    func MyFun(a int) int {    
+        return a + 5    
     }
+```
 
 То, что будет экспортироваться обязательно должно начинаться с заглавной буквы (соглашения в Го)
 
@@ -185,8 +169,9 @@ https://go.dev/doc/code
   
 
 3) внутри директории с пакетом pkgA выполнить команду
-
+```bash
     go mod init pkgA
+```
 
 поправить версию go на ту что используется в модуле при необходимости
 
@@ -194,7 +179,7 @@ https://go.dev/doc/code
 
 4) в корневом каталоге модуля д.ю. файл go.work, в нем перечислаяются пути к директориям с пакетами, добавить туда путь к пакету
 
-        ```go
+```go
         
         go 1.21.1
         
@@ -206,7 +191,7 @@ https://go.dev/doc/code
             ./types            
             ./db_utils        
         )
-        ```
+```
 
   
   
