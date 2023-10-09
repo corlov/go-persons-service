@@ -38,6 +38,6 @@ input PersonInput{
 }
 
 type PostStatus{
-    iserror: Boolean!
-    description: String
+  iserror: Boolean!
+  description: String
 }

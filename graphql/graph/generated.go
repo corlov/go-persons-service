@@ -8,7 +8,7 @@ import (
 	"embed"
 	"errors"
 	"fmt"
-	"graphql_service/graphql_service/graph/model"
+	"graphql/graph/model"
 	"strconv"
 	"sync"
 	"sync/atomic"
@@ -344,7 +344,7 @@ func (ec *executionContext) field_Mutation_add_person_args(ctx context.Context, 
 	var arg0 model.PersonInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalNPersonInput2graphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPersonInput(ctx, tmp)
+		arg0, err = ec.unmarshalNPersonInput2graphqlᚋgraphᚋmodelᚐPersonInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -374,7 +374,7 @@ func (ec *executionContext) field_Mutation_update_person_args(ctx context.Contex
 	var arg0 *model.UpdatePersonInput
 	if tmp, ok := rawArgs["input"]; ok {
 		ctx := graphql.WithPathContext(ctx, graphql.NewPathWithField("input"))
-		arg0, err = ec.unmarshalOUpdatePersonInput2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐUpdatePersonInput(ctx, tmp)
+		arg0, err = ec.unmarshalOUpdatePersonInput2ᚖgraphqlᚋgraphᚋmodelᚐUpdatePersonInput(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -476,7 +476,7 @@ func (ec *executionContext) _Mutation_add_person(ctx context.Context, field grap
 	}
 	res := resTmp.(*model.PostStatus)
 	fc.Result = res
-	return ec.marshalOPostStatus2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPostStatus(ctx, field.Selections, res)
+	return ec.marshalOPostStatus2ᚖgraphqlᚋgraphᚋmodelᚐPostStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_add_person(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -534,7 +534,7 @@ func (ec *executionContext) _Mutation_update_person(ctx context.Context, field g
 	}
 	res := resTmp.(*model.PostStatus)
 	fc.Result = res
-	return ec.marshalOPostStatus2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPostStatus(ctx, field.Selections, res)
+	return ec.marshalOPostStatus2ᚖgraphqlᚋgraphᚋmodelᚐPostStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_update_person(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -592,7 +592,7 @@ func (ec *executionContext) _Mutation_delete_person(ctx context.Context, field g
 	}
 	res := resTmp.(*model.PostStatus)
 	fc.Result = res
-	return ec.marshalOPostStatus2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPostStatus(ctx, field.Selections, res)
+	return ec.marshalOPostStatus2ᚖgraphqlᚋgraphᚋmodelᚐPostStatus(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Mutation_delete_person(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1031,7 +1031,7 @@ func (ec *executionContext) _Query_get_persons(ctx context.Context, field graphq
 	}
 	res := resTmp.([]*model.Person)
 	fc.Result = res
-	return ec.marshalOPerson2ᚕᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPerson(ctx, field.Selections, res)
+	return ec.marshalOPerson2ᚕᚖgraphqlᚋgraphᚋmodelᚐPerson(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_get_persons(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -3718,7 +3718,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) unmarshalNPersonInput2graphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPersonInput(ctx context.Context, v interface{}) (model.PersonInput, error) {
+func (ec *executionContext) unmarshalNPersonInput2graphqlᚋgraphᚋmodelᚐPersonInput(ctx context.Context, v interface{}) (model.PersonInput, error) {
 	res, err := ec.unmarshalInputPersonInput(ctx, v)
 	return res, graphql.ErrorOnPath(ctx, err)
 }
@@ -4033,7 +4033,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOPerson2ᚕᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPerson(ctx context.Context, sel ast.SelectionSet, v []*model.Person) graphql.Marshaler {
+func (ec *executionContext) marshalOPerson2ᚕᚖgraphqlᚋgraphᚋmodelᚐPerson(ctx context.Context, sel ast.SelectionSet, v []*model.Person) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4060,7 +4060,7 @@ func (ec *executionContext) marshalOPerson2ᚕᚖgraphql_serviceᚋgraphql_servi
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalOPerson2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPerson(ctx, sel, v[i])
+			ret[i] = ec.marshalOPerson2ᚖgraphqlᚋgraphᚋmodelᚐPerson(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4074,14 +4074,14 @@ func (ec *executionContext) marshalOPerson2ᚕᚖgraphql_serviceᚋgraphql_servi
 	return ret
 }
 
-func (ec *executionContext) marshalOPerson2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPerson(ctx context.Context, sel ast.SelectionSet, v *model.Person) graphql.Marshaler {
+func (ec *executionContext) marshalOPerson2ᚖgraphqlᚋgraphᚋmodelᚐPerson(ctx context.Context, sel ast.SelectionSet, v *model.Person) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Person(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOPostStatus2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐPostStatus(ctx context.Context, sel ast.SelectionSet, v *model.PostStatus) graphql.Marshaler {
+func (ec *executionContext) marshalOPostStatus2ᚖgraphqlᚋgraphᚋmodelᚐPostStatus(ctx context.Context, sel ast.SelectionSet, v *model.PostStatus) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4104,7 +4104,7 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 	return res
 }
 
-func (ec *executionContext) unmarshalOUpdatePersonInput2ᚖgraphql_serviceᚋgraphql_serviceᚋgraphᚋmodelᚐUpdatePersonInput(ctx context.Context, v interface{}) (*model.UpdatePersonInput, error) {
+func (ec *executionContext) unmarshalOUpdatePersonInput2ᚖgraphqlᚋgraphᚋmodelᚐUpdatePersonInput(ctx context.Context, v interface{}) (*model.UpdatePersonInput, error) {
 	if v == nil {
 		return nil, nil
 	}

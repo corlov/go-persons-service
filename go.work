@@ -1,0 +1,10 @@
+go 1.21.1
+
+use (
+	.
+	./rest
+	./data_enrichment
+	./graphql
+	./types
+	./db_utils	
+)

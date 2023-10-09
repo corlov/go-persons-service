@@ -1,69 +1,49 @@
-package main
+package rest
 
 import (
-	"context"
 	"database/sql"
+	"db_utils"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"strconv"
+	"types"
 
 	"github.com/gin-gonic/gin"
+	"github.com/go-redis/redis"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
-	"github.com/redis/go-redis"
 )
 
-var (
-	Log      *log.Logger
-)
-// FIXME: в общие структурные файлы структуры вынести
-const (
-    host = "127.0.0.1"
-    port = 5432
-    user = "postgres"
-    password = "postgres"
-    dbname = "WorldPopulation"
-)
-
-// FIXME: в общие структурные файлы структуры вынести
-type Person struct {
-	Id  uint64 `json:"id"`
-	Name  string `json:"name"`
-	Surname string `json:"surname"`
-	Patronymic string `json:"patronymic"`
-	Age uint8 `json:"age"`
-	Gender string `json:"gender"`
-	Nationality string `json:"nationality"`
-}
+var Log *log.Logger
+var redisAddr string
 
 
-func main() {
-	file, err := os.Create("./rest_service.log")
+
+func ServiceRun() {
+	file, err := os.Create("rest_service.log")
 	if err != nil {
 		panic(err)
 	}
 	Log = log.New(file, "", log.LstdFlags | log.Lshortfile)
 	Log.Println("started")
 
+	err = godotenv.Load("local.env")
+	if err != nil {
+		log.Fatalf("Some error occured. Err: %s", err)
+	}
+	redisAddr = os.Getenv("REDIS_ADDR")
+	restPort := os.Getenv("REST_PORT")
+
 	loadDb2Redis()
 	
-    router := gin.Default()
-    
+    router := gin.Default()    
 	router.GET("/get_persons", getPersons)	
 	router.POST("/add_person", addPerson)
 	router.GET("/remove_person", removePerson)
 	router.POST("/update_person", updatePerson)
-
-	
-	err = godotenv.Load("../local.env")
-	if err != nil {
-		log.Fatalf("Some error occured. Err: %s", err)
-	}
-
-	restPort := os.Getenv("REST_PORT")
     router.Run("localhost:" + restPort)
 }
 
@@ -74,6 +54,7 @@ curl http://localhost:8080/remove_person?id=4
 func removePerson(c *gin.Context) {
 	argId := 0
 
+	// TODO: предусмотреть удаление по другим параметрам также
 	paramPairs := c.Request.URL.Query()
     for key, val := range paramPairs {
 		switch key {
@@ -87,7 +68,8 @@ func removePerson(c *gin.Context) {
 		}
     }
 
-	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable", host, port, user, password, dbname)
+	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable", 
+							db_utils.Host, db_utils.Port, db_utils.User, db_utils.Password, db_utils.DbName)
 	db, err := sql.Open("postgres", connStr)
     if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -116,7 +98,7 @@ curl http://localhost:8080/update_person \
     --data '{ "id": 2, "name": "Alex", "surname": "Ivanov", "age": 67, "gender": "male", "nationality": "ES"}'
 */
 func updatePerson(c *gin.Context) {
-	var updPerson Person
+	var updPerson types.Person
     // Call BindJSON to bind the received JSON to newPerson
     if err := c.BindJSON(&updPerson); err != nil {
 		Log.Println("BIND ERROR")
@@ -134,9 +116,9 @@ func updatePerson(c *gin.Context) {
 }
 
 
-func update(p Person) string {
+func update(p types.Person) string {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
+    						db_utils.Host, db_utils.Port, db_utils.User, db_utils.Password, db_utils.DbName)
     db, err := sql.Open("postgres", connStr)
     if err != nil {
 		return err.Error()
@@ -177,7 +159,7 @@ curl http://localhost:8080/add_person \
     --data '{ "name": "Alex", "surname": "Ivanov", "age": 31, "gender": "male", "nationality": "RU" }'
 */
 func addPerson(c *gin.Context) {
-	var newPerson Person
+	var newPerson types.Person
     // Call BindJSON to bind the received JSON to newPerson
     if err := c.BindJSON(&newPerson); err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -185,7 +167,7 @@ func addPerson(c *gin.Context) {
     }
 
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
+    	db_utils.Host, db_utils.Port, db_utils.User, db_utils.Password, db_utils.DbName)
     db, err := sql.Open("postgres", connStr)
     if err != nil {
         c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -205,7 +187,7 @@ func addPerson(c *gin.Context) {
 
 
 func getPersons(c *gin.Context) {
-	// FIXME: в константы
+	// для пагинации результатов
 	blockSize := 10
 	page := 0
 
@@ -271,19 +253,19 @@ func getPersons(c *gin.Context) {
     }
 
 	if requestByIdOnly {
-		 client := redis.NewClient(&redis.Options{
-			Addr:	  "localhost:6379",
+		fmt.Println(requestByIdOnly)
+		
+		client := redis.NewClient(&redis.Options{
+			Addr:	  redisAddr,
 			Password: "", // no password set
 			DB:		  0,  // use default DB
 		})
 
-		ctx := context.Background()
-
-		val, err := client.Get(ctx, strconv.Itoa(int(argId))).Result()
+		val, err := client.Get(strconv.Itoa(int(argId))).Result()
 		if err != nil {
 			Log.Println("Not found, read from Db")
 		} else {
-			var p Person
+			var p types.Person
 			err = json.Unmarshal([]byte(val), &p)
 			if err != nil {
 				Log.Println(err.Error())
@@ -291,7 +273,7 @@ func getPersons(c *gin.Context) {
 			}
 			Log.Println(p)
 
-			var persons []Person
+			var persons []types.Person
 			persons = append(persons, p)
 			c.IndentedJSON(http.StatusOK,  persons) 
 			Log.Println("found into Redis")
@@ -326,7 +308,7 @@ func getPersons(c *gin.Context) {
 	// fmt.Println(sqlQueryText)
 	
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
+    						db_utils.Host, db_utils.Port, db_utils.User, db_utils.Password, db_utils.DbName)
 	db, err := sql.Open("postgres", connStr)
     if err != nil {
 		c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -343,9 +325,9 @@ func getPersons(c *gin.Context) {
     }
     defer rows.Close()
 
-	var persons []Person
+	var persons []types.Person
     for rows.Next() {
-		var p Person
+		var p types.Person
         err := rows.Scan(&p.Id, &p.Name, &p.Surname, &p.Patronymic, &p.Age, &p.Gender, &p.Nationality)
         if err != nil {
             c.IndentedJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -366,16 +348,13 @@ func getPersons(c *gin.Context) {
 func loadDb2Redis() {
 
 	client := redis.NewClient(&redis.Options{
-        Addr:	  "localhost:6379",
+        Addr:	  redisAddr,
         Password: "", // no password set
         DB:		  0,  // use default DB
     })
 
-	ctx := context.Background()
-
-
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
+    					db_utils.Host, db_utils.Port, db_utils.User, db_utils.Password, db_utils.DbName)
 	db, err := sql.Open("postgres", connStr)
     if err != nil {
 		return
@@ -395,28 +374,40 @@ func loadDb2Redis() {
 		from "Population".Person`)
 
     if err != nil {
+		Log.Println("Load from RedisDb failed!")
 		return
     }
     defer rows.Close()
 
     for rows.Next() {
-		var p Person
+		var p types.Person
         err := rows.Scan(&p.Id, &p.Name, &p.Surname, &p.Patronymic, &p.Age, &p.Gender, &p.Nationality)
         if err != nil {
 			return
         }
 		
 		jsonText, err := json.Marshal(p)
-		err = client.Set(ctx, strconv.Itoa(int(p.Id)), jsonText, 0).Err()
+		if err != nil {
+			Log.Println("Load from RedisDb failed!", err.Error())
+			return
+		}
+		err = client.Set(strconv.Itoa(int(p.Id)), jsonText, 0).Err()
 		if err != nil {
 			panic(err)
 		}
+		val, err := client.Get(strconv.Itoa(int(p.Id))).Result()
+		if err != nil {
+			Log.Println("Load from RedisDb failed!", err.Error())
+			return
+		}
+		fmt.Println("Loaded ", val)
     }
     err = rows.Err()
     if err != nil {
+		Log.Println("Load from RedisDb failed!", err.Error())
 		return
     }
-	Log.Println("Loaded!")
+	Log.Println("All records have loaded!")
 
 	// reading from Redis
 

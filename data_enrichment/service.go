@@ -1,8 +1,9 @@
-package main
+package data_enrichment
 
 import (
 	"context"
 	"database/sql"
+	"db_utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,70 +11,41 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"types"
 
+	"github.com/joho/godotenv"
 	"github.com/segmentio/kafka-go"
 
 	_ "github.com/lib/pq"
 )
 
-const (
-    host = "127.0.0.1"
-    port = 5432
-    user = "postgres"
-    password = "postgres"
-    dbname = "WorldPopulation"
-)
 
 const (
-	fioTopicName         = "FIO"
-	errrorTopicName = "FIO_FAILED"
-	brokerAddress = "localhost:9092"
+	fioTopicName         	= "FIO"
+	errrorTopicName 		= "FIO_FAILED"
 )
+const END_POINT_NATION = "https://api.nationalize.io"
+const END_POINT_GENDER = "https://api.genderize.io"
+const END_POINT_AGE    = "https://api.agify.io"
 
-type Person struct {
-	Name  string `json:"name"`
-	Surname string `json:"surname"`
-	Patronymic string `json:"patronymic"`
-	Age uint8
-	Gender string
-	Nationality string
-}
+var Log *log.Logger
+var brokerAddress string
 
-type Age struct {
-	Count  int `json:"count"`
-	Name string `json:"name"`
-	Age uint8 `json:"age"`	
-}
 
-type Gender struct {
-	Count  int `json:"count"`
-	Name string `json:"name"`
-	Gender string `json:"gender"`
-	Probability float32 `json:"probability"`
-}
-
-type Country struct {
-	CountryId  string `json:"country_id"`
-	Probability float64 `json:"probability"`
-}
-
-type Nationality struct {
-	Count  int `json:"count"`
-	Name string `json:"name"`
-	Country []Country
-}
-
-var (
-	Log      *log.Logger
-)
-
-func main() {
-	file, err := os.Create("./expand_service.log")
+func ServiceRun() {
+	file, err := os.Create("enrichment.log")
 	if err != nil {
 		panic(err)
 	}
 	Log = log.New(file, "", log.LstdFlags | log.Lshortfile)
 	Log.Println("started")
+
+	err = godotenv.Load("local.env")
+	if err != nil {
+		log.Fatalf("Some error occured. Err: %s", err)
+	}
+	brokerAddress = os.Getenv("KAFKA_ADDR")
+    
 
 	ctx := context.Background()	
 	consume(ctx)
@@ -103,7 +75,7 @@ func consume(ctx context.Context) {
 		Log.Println("received: ", string(msg.Value))
 
 		
-		var newPerson Person
+		var newPerson types.Person
 		err = json.Unmarshal([]byte(string(msg.Value)), &newPerson)
 		if err != nil {
 			Log.Println("json format error:", err)
@@ -123,9 +95,9 @@ func consume(ctx context.Context) {
 
 
 
-func expandData(p *Person) {	
-	var age Age
-	jsonStr := httpRes("https://api.agify.io", p.Name)
+func expandData(p *types.Person) {		
+	var age types.Age
+	jsonStr := httpRes(END_POINT_AGE, p.Name)
 	err := json.Unmarshal([]byte(jsonStr), &age)
 	if err != nil {
 		Log.Println(err.Error())
@@ -135,8 +107,8 @@ func expandData(p *Person) {
 	// поэтому проверку типов пройти, если null, то тогда выдать сообщение о некорректности имени и т.д.
 	p.Age = age.Age
 
-	var gender Gender
-	jsonStr = httpRes("https://api.genderize.io", p.Name)
+	var gender types.Gender
+	jsonStr = httpRes(END_POINT_GENDER, p.Name)
 	err = json.Unmarshal([]byte(jsonStr), &gender)
 	if err != nil {
 		Log.Println(err.Error())
@@ -147,8 +119,8 @@ func expandData(p *Person) {
 	p.Gender = gender.Gender
 
 
-	var nationality Nationality
-	jsonStr = httpRes("https://api.nationalize.io", p.Name)
+	var nationality types.Nationality
+	jsonStr = httpRes(END_POINT_NATION, p.Name)
 	err = json.Unmarshal([]byte(jsonStr), &nationality)
 	if err != nil {
 		Log.Println(err.Error())
@@ -168,9 +140,9 @@ func expandData(p *Person) {
 }
 
 
-func insertDb(p *Person) {
+func insertDb(p *types.Person) {
 	connStr := fmt.Sprintf("host=%s port=%d user=%s "+ "password=%s dbname=%s sslmode=disable",
-    host, port, user, password, dbname)
+    						db_utils.Host, db_utils.Port, db_utils.User, db_utils.Password, db_utils.DbName)
     db, err := sql.Open("postgres", connStr)
     if err != nil {
         panic(err)
